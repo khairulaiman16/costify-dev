@@ -1,0 +1,325 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Game Formula 3 - Food Cost Percentage (Table Style)</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: #0f1724;
+      color: #fff;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+      min-height: 100vh;
+      padding: 20px;
+    }
+    h1, h2 { text-align: center; }
+    .game-area {
+      margin: 12px;
+      /* margin: 12px; */
+      max-width: 800px;
+      width: 100%;
+      background: #111827;
+      padding: 20px;
+      border-radius: 12px;
+      box-shadow: 0 6px 18px rgba(0,0,0,0.5);
+    }
+    @media (max-width: 600px) {
+  .game-area {
+    width: calc(100% - 30px); /* leaves ~15px space on each side */
+  }
+}
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 16px;
+    }
+    #tableContainer {
+  padding-right: 8px; /* small space on the right */
+}
+    td {
+      border: 1px solid rgba(255,255,255,0.1);
+      padding: 10px;
+      vertical-align: top;
+    }
+    .slot {
+      min-height: 28px;
+      border: 2px dashed #06b6d4;
+      border-radius: 6px;
+      padding: 4px 8px;
+      display: inline-block;
+      cursor: pointer;
+      background: rgba(255,255,255,0.05);
+    }
+    .options {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-bottom: 16px;
+    }
+    .option {
+      padding: 8px 12px;
+      background: #06b6d4;
+      color: #021024;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: bold;
+      user-select: none;
+    }
+    .option.selected {
+      outline: 3px solid #7c3aed;
+    }
+    .hidden { display: none; }
+    .result {
+      font-size: 1.2rem;
+      font-weight: bold;
+      margin-top: 16px;
+      text-align: center;
+    }
+    button {
+      padding: 10px 18px;
+      border: none;
+      border-radius: 8px;
+      background: linear-gradient(90deg,#06b6d4,#7c3aed);
+      color: #fff;
+      font-weight: bold;
+      cursor: pointer;
+      margin-top: 12px;
+    }
+    @media (max-width: 600px) {
+  table, thead, tbody, tr, td {
+    display: block;
+    width: 100%;
+  }
+  tr {
+    margin-bottom: 12px;
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 8px;
+    padding: 8px;
+    background: rgba(255,255,255,0.03);
+  }
+  td {
+    border: none;
+    border-bottom: 1px solid rgba(255,255,255,0.1);
+    padding: 6px 0;
+  }
+  td:last-child {
+    border-bottom: none;
+  }
+}
+
+  </style>
+</head>
+<body>
+  <h1>Game Formula 3</h1>
+  <h2>Food Cost Percentage (Fill the Blanks)</h2>
+
+  <div class="game-area">
+    <div id="roundInfo"></div>
+    <div id="tableContainer"></div>
+    <div class="options" id="options"></div>
+    <button id="nextBtn" class="hidden">Next Round</button>
+    <button id="restartBtn" class="hidden">Restart</button>
+    <button id="retryBtn" class="hidden">Retry</button>
+    <div id="finalResult" class="result hidden"></div>
+    <div id="breakdown" class="hidden"></div>
+  </div>
+
+  <script>
+    const rounds = [
+      // Round 1
+      {
+        rows: [
+          {Characteristic: "[blank]", Problem: "Marginal due to high product cost and lack of sales", Strategy: "Remove item from the menu, consider different food items to replace it, survey guests, or reduce price and promote if margin is high", answer: "Low FC's, High Popularity"},
+          {Characteristic: "High FC's, High Popularity", Problem: "[blank]", Strategy: "Increase price", answer: "Marginal due to high product cost on the menu"},
+          {Characteristic: "Low FC's, Low Popularity", Problem: "Marginal due to lack of sales", Strategy: "[blank]", answer: "Promote item more aggressively or bundle with other items"}
+        ],
+        options: [
+          "Low FC's, High Popularity",
+          "Marginal due to high product cost on the menu",
+          "Promote item more aggressively or bundle with other items",
+          "High FC's, Low Popularity",
+          "Reduce portion size or increase price"
+        ]
+      },
+      // Round 2
+      {
+        rows: [
+          {Characteristic: "High FC's, Low Popularity", Problem: "Marginal due to high product cost and lack of sales", Strategy: "[blank]", answer: "Remove item from the menu and survey guests"},
+          {Characteristic: "[blank]", Problem: "Marginal due to high product cost on the menu", Strategy: "Reduce portion size or increase price", answer: "High FC's, High Popularity"},
+          {Characteristic: "Low FC's, High Popularity", Problem: "[blank]", Strategy: "Promote item more aggressively or bundle with other items", answer: "Marginal due to high product cost and lack of sales"}
+        ],
+        options: [
+          "High FC's, High Popularity",
+          "Marginal due to high product cost and lack of sales",
+          "Remove item from the menu and survey guests",
+          "Low FC's, Low Popularity",
+          "Increase price"
+        ]
+      },
+      // Round 3
+      {
+        rows: [
+          {Characteristic: "High FC's, Low Popularity", Problem: "[blank]", Strategy: "Remove item from the menu and survey guests", answer: "Marginal due to high product cost and lack of sales"},
+          {Characteristic: "Low FC's, High Popularity", Problem: "Marginal due to high product cost on the menu", Strategy: "[blank]", answer: "Reduce price and promote if margin is high"},
+          {Characteristic: "Low FC's, Low Popularity", Problem: "Marginal due to lack of sales", Strategy: "[blank]", answer: "Promote item more aggressively or bundle with other items"}
+        ],
+        options: [
+          "Marginal due to high product cost and lack of sales",
+          "Reduce price and promote if margin is high",
+          "Promote item more aggressively or bundle with other items",
+          "Remove item from the menu and survey guests",
+          "Reduce portion size or increase price"
+        ]
+      }
+    ];
+
+    let currentRound = 0;
+    let score = 0;
+    let roundScores = [];
+    let selectedOption = null;
+
+    const roundInfo = document.getElementById("roundInfo");
+    const tableContainer = document.getElementById("tableContainer");
+    const optionsDiv = document.getElementById("options");
+    const nextBtn = document.getElementById("nextBtn");
+    const restartBtn = document.getElementById("restartBtn");
+    const retryBtn = document.getElementById("retryBtn");
+    const finalResult = document.getElementById("finalResult");
+    const breakdown = document.getElementById("breakdown");
+
+    function loadRound() {
+      const r = rounds[currentRound];
+      roundInfo.textContent = `Round ${currentRound+1} of ${rounds.length}`;
+
+      // Build table
+      let html = `<table>`;
+      r.rows.forEach((row, idx) => {
+        html += `<tr><td><strong>Characteristic:</strong> ${row.Characteristic === "[blank]" ? `<div class='slot' data-row='${idx}' data-type='Characteristic'>[Blank]</div>` : row.Characteristic}</td>`;
+        html += `<td><strong>Problem:</strong> ${row.Problem === "[blank]" ? `<div class='slot' data-row='${idx}' data-type='Problem'>[Blank]</div>` : row.Problem}</td>`;
+        html += `<td><strong>Strategy:</strong> ${row.Strategy === "[blank]" ? `<div class='slot' data-row='${idx}' data-type='Strategy'>[Blank]</div>` : row.Strategy}</td></tr>`;
+      });
+      html += `</table>`;
+      tableContainer.innerHTML = html;
+
+      // Build options
+      optionsDiv.innerHTML = "";
+      r.options.forEach(val => {
+        const d = document.createElement("div");
+        d.className = "option";
+        d.textContent = val;
+        d.dataset.value = val;
+        d.onclick = () => selectOption(d);
+        optionsDiv.appendChild(d);
+      });
+
+      nextBtn.classList.add("hidden");
+      restartBtn.classList.add("hidden");
+      retryBtn.classList.add("hidden");
+
+      // Slot click handler
+      tableContainer.querySelectorAll(".slot").forEach(slot => {
+        slot.onclick = () => placeInSlot(slot);
+      });
+    }
+
+    function selectOption(el) {
+      if(selectedOption) selectedOption.classList.remove("selected");
+      selectedOption = el;
+      el.classList.add("selected");
+    }
+
+    function placeInSlot(slotEl) {
+      if(selectedOption) {
+        slotEl.textContent = selectedOption.dataset.value;
+        slotEl.dataset.filled = selectedOption.dataset.value;
+        selectedOption.classList.remove("selected");
+        selectedOption.style.pointerEvents = "none";
+        selectedOption.style.opacity = 0.6;
+        selectedOption = null;
+        // If all slots filled, show next button
+        const allSlots = tableContainer.querySelectorAll(".slot");
+        const filled = Array.from(allSlots).every(s=>s.dataset.filled);
+        if(filled) nextBtn.classList.remove("hidden");
+      }
+    }
+
+    function calculateRoundScore() {
+      const r = rounds[currentRound];
+      let roundScore = 0;
+      r.rows.forEach((row, idx) => {
+        const answer = row.answer;
+        const slot = tableContainer.querySelector(`.slot[data-row='${idx}'][data-type]`);
+        if(slot && slot.dataset.filled === answer) {
+          roundScore++;
+        }
+      });
+      return roundScore;
+    }
+
+    nextBtn.onclick = () => {
+      const roundScore = calculateRoundScore();
+      score += roundScore;
+      roundScores.push(roundScore);
+      if(currentRound < rounds.length - 1) {
+        currentRound++;
+        loadRound();
+      } else {
+        showFinalResult();
+      }
+    }
+
+    restartBtn.onclick = () => {
+      currentRound = 0;
+      score = 0;
+      roundScores = [];
+      finalResult.classList.add("hidden");
+      breakdown.classList.add("hidden");
+      loadRound();
+    }
+
+    retryBtn.onclick = () => {
+      currentRound = 0;
+      score = 0;
+      roundScores = [];
+      finalResult.classList.add("hidden");
+      breakdown.classList.add("hidden");
+      loadRound();
+    }
+
+   function showFinalResult() {
+  tableContainer.innerHTML = "";
+  optionsDiv.innerHTML = "";
+  roundInfo.textContent = "";
+  nextBtn.classList.add("hidden");
+
+  finalResult.classList.remove("hidden");
+  finalResult.textContent = `Game Over! Final Score: ${score}/9`;
+
+  breakdown.classList.remove("hidden");
+  breakdown.innerHTML = roundScores
+    .map((s, i) => `Round ${i + 1}: ${s}/3`)
+    .join("<br>");
+
+  restartBtn.classList.remove("hidden");
+  retryBtn.classList.remove("hidden");
+
+  // If you want a “Back to Menu” when perfect score:
+  if (score === 9) {
+    nextBtn.textContent = "Back to Menu";
+    nextBtn.classList.remove("hidden");
+    nextBtn.onclick = () => {
+      window.location.href = "Menu.html"; // change path if needed
+    };
+  }
+}
+
+ 
+    loadRound();
+  </script>
+</body>
+</html>
