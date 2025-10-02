@@ -1,0 +1,318 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Game Formula 2 - Conversion by Manner (5 Rounds)</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: #0f1724;
+      color: #fff;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+      min-height: 100vh;
+      padding: 20px;
+    }
+    h1, h2 { text-align: center; }
+    .game-area {
+      margin: 12px;
+      /* margin-top: 20px; */
+      max-width: 800px;
+      width: 100%;
+      background: #111827;
+      padding: 20px;
+      border-radius: 12px;
+      box-shadow: 0 6px 18px rgba(0,0,0,0.5);
+    }
+
+    @media (max-width: 600px) {
+  .game-area {
+    width: calc(100% - 30px); /* leaves ~15px space on each side */
+  }
+}
+    .columns {
+      display: flex;
+      justify-content: space-between;
+      gap: 20px;
+    }
+    .col {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .item {
+      padding: 10px 14px;
+      background: #06b6d4;
+      color: #021024;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: bold;
+      user-select: none;
+      text-align: center;
+    }
+    .item.selected {
+      outline: 3px solid #7c3aed;
+    }
+    .locked {
+      background: #4ade80 !important;
+      color: #021024;
+      cursor: default;
+    }
+    .hidden { display: none; }
+    .result {
+      font-size: 1.2rem;
+      font-weight: bold;
+      margin-top: 16px;
+      text-align: center;
+      white-space: pre-wrap;
+    }
+    button {
+      padding: 10px 18px;
+      border: none;
+      border-radius: 8px;
+      background: linear-gradient(90deg,#06b6d4,#7c3aed);
+      color: #fff;
+      font-weight: bold;
+      cursor: pointer;
+      margin-top: 12px;
+    }
+    #controls {
+      display:flex;
+      gap:10px;
+      justify-content:center;
+      margin-top:12px;
+      flex-wrap:wrap;
+    }
+  </style>
+</head>
+<body>
+  <h1>Game Formula 2 Prototype</h1>
+  <h2 id="subtitle">Round-based Conversion Game</h2>
+
+  <div class="game-area">
+    <div id="roundInfo">Round 1 of 5</div>
+    <div class="columns">
+      <div class="col" id="leftCol"></div>
+      <div class="col" id="rightCol"></div>
+    </div>
+    <div id="controls">
+      <button id="nextBtn" class="hidden">Next Round</button>
+      <button id="restartBtn" class="hidden">Restart</button>
+    </div>
+    <div id="finalResult" class="result hidden"></div>
+  </div>
+
+  <script>
+    // Imperial → Metric pairs
+    const imperialToMetricPairs = [
+      { left: "1 ounce (oz)", right: "28 grams (g)" },
+      { left: "1 pound (lb)", right: "0.45 kilograms (kg)" },
+      { left: "1 teaspoon (tsp)", right: "5 millilitres (ml)" },
+      { left: "1 tablespoon (tbsp)", right: "15 millilitres (ml)" },
+      { left: "1 cup (C)", right: "0.25 litres (l)" },
+      { left: "1 fluid ounce (fl. oz)", right: "30 millilitres (ml)" },
+      { left: "1 pint (pt)", right: "0.47 litres (l)" },
+      { left: "1 quart (qt)", right: "0.95 litres (l)" },
+      { left: "1 gallon (gal)", right: "38.46 litres (l)" },
+      { left: "1 cubic foot (ft³)", right: "0.03 cubic meters (m³)" },
+      { left: "1 cubic yard (yd³)", right: "0.76 cubic meters (m³)" },
+      { left: "1 ounce (oz)", right: "0.03 litres (l)" }
+    ];
+
+    // Metric → Imperial pairs
+    const metricToImperialPairs = [
+      { left: "1 gram (g)", right: "0.035 ounces (oz)" },
+      { left: "1 kilogram (kg)", right: "2.22 pounds (lb)" },
+      { left: "1 millilitre (ml)", right: "0.2 teaspoon (tsp)" },
+      { left: "1 millilitre (ml)", right: "0.07 tablespoon (tbsp)" },
+      { left: "1 litre (l)", right: "33.33 ounces (oz) = 4 cups (C)" },
+      { left: "1 litre (l)", right: "0.03 fluid ounces (fl. oz)" },
+      { left: "1 litre (l)", right: "2.1 pints (pt)" },
+      { left: "1 litre (l)", right: "1.05 quarts (qt)" },
+      { left: "1 litre (l)", right: "0.026 gallons (gal)" },
+      { left: "1 cubic meter (m³)", right: "33.33 cubic feet (ft³)" },
+      { left: "1 cubic meter (m³)", right: "1.3 cubic yards (yd³)" }
+    ];
+
+    let currentRound = 1;
+    const totalRounds = 5;
+    let rounds = [];
+    let roundScores = [];
+    let totalScore = 0;
+
+    const leftCol = document.getElementById('leftCol');
+    const rightCol = document.getElementById('rightCol');
+    const nextBtn = document.getElementById('nextBtn');
+    const restartBtn = document.getElementById('restartBtn');
+    const finalResult = document.getElementById('finalResult');
+    const roundInfo = document.getElementById('roundInfo');
+    const subtitle = document.getElementById('subtitle');
+
+    let selectedLeft = null;
+    let selectedRight = null;
+    let matchesMade = 0;
+    let roundScore = 0;
+
+    function shuffleArray(array) {
+      for (let i = array.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [array[i], array[j]] = [array[j], array[i]];
+      }
+      return array;
+    }
+
+    function buildRounds() {
+      rounds = [];
+      roundScores = [];
+      totalScore = 0;
+      const impPool = imperialToMetricPairs.map((p, i) => ({...p, _idx: i}));
+      const metPool = metricToImperialPairs.map((p, i) => ({...p, _idx: i}));
+      const usedImp = new Set();
+      const usedMet = new Set();
+
+      for (let r = 1; r <= totalRounds; r++) {
+        const isImperialRound = r <= 3;
+        const pool = isImperialRound ? impPool : metPool;
+        const usedSet = isImperialRound ? usedImp : usedMet;
+        let available = pool.filter(item => !usedSet.has(item._idx));
+        if (available.length < 5) available = pool.slice();
+        const shuffled = shuffleArray(available.slice());
+        const picked = shuffled.slice(0, 5).map(item => ({ left: item.left, right: item.right, _idx: item._idx }));
+        picked.forEach(it => usedSet.add(it._idx));
+        rounds.push({ pairs: picked, isImperialRound });
+      }
+    }
+
+    function loadRound(index) {
+      const roundNumber = index + 1;
+      const round = rounds[index];
+      selectedLeft = null;
+      selectedRight = null;
+      matchesMade = 0;
+      roundScore = 0;
+      leftCol.innerHTML = '';
+      rightCol.innerHTML = '';
+      finalResult.classList.add('hidden');
+      restartBtn.classList.add('hidden');
+      nextBtn.classList.add('hidden');
+      roundInfo.textContent = `Round ${roundNumber} of ${totalRounds}`;
+      subtitle.textContent = round.isImperialRound ? 'Imperial → Metric' : 'Metric → Imperial';
+      const pairs = round.pairs.map((p, i) => ({...p, pairId: i}));
+      const leftItems = shuffleArray(pairs.slice().map(p => ({ text: p.left, pairId: p.pairId })));
+      const rightItems = shuffleArray(pairs.slice().map(p => ({ text: p.right, pairId: p.pairId })));
+      leftItems.forEach(li => {
+        const el = document.createElement('div');
+        el.className = 'item';
+        el.textContent = li.text;
+        el.dataset.pairId = li.pairId;
+        el.onclick = () => selectLeft(el);
+        leftCol.appendChild(el);
+      });
+      rightItems.forEach(ri => {
+        const el = document.createElement('div');
+        el.className = 'item';
+        el.textContent = ri.text;
+        el.dataset.pairId = ri.pairId;
+        el.onclick = () => selectRight(el);
+        rightCol.appendChild(el);
+      });
+    }
+
+    function selectLeft(el) {
+      if (el.classList.contains('locked')) return;
+      if (selectedLeft) selectedLeft.classList.remove('selected');
+      selectedLeft = el;
+      el.classList.add('selected');
+      tryMatch();
+    }
+
+    function selectRight(el) {
+      if (el.classList.contains('locked')) return;
+      if (selectedRight) selectedRight.classList.remove('selected');
+      selectedRight = el;
+      el.classList.add('selected');
+      tryMatch();
+    }
+
+    function tryMatch() {
+      if (selectedLeft && selectedRight) {
+        selectedLeft.classList.remove('selected');
+        selectedRight.classList.remove('selected');
+
+        if (selectedLeft.dataset.pairId === selectedRight.dataset.pairId) {
+          roundScore++;
+          totalScore++;
+        }
+
+        // lock pair regardless of correctness
+        selectedLeft.classList.add('locked');
+        selectedRight.classList.add('locked');
+        selectedLeft.onclick = null;
+        selectedRight.onclick = null;
+
+        selectedLeft = null;
+        selectedRight = null;
+        matchesMade++;
+
+        if (matchesMade === 5) {
+          if (currentRound < totalRounds) {
+            nextBtn.textContent = 'Next Round';
+            nextBtn.classList.remove('hidden');
+          } else {
+            nextBtn.textContent = 'Show Results';
+            nextBtn.classList.remove('hidden');
+          }
+        }
+      }
+    }
+
+    nextBtn.onclick = () => {
+      roundScores[currentRound - 1] = roundScore;
+      if (currentRound < totalRounds) {
+        currentRound++;
+        loadRound(currentRound - 1);
+      } else {
+        showFinalResult();
+      }
+    };
+
+    restartBtn.onclick = () => {
+      currentRound = 1;
+      buildRounds();
+      loadRound(0);
+    };
+
+    function showFinalResult() {
+  leftCol.innerHTML = '';
+  rightCol.innerHTML = '';
+  nextBtn.classList.add('hidden');
+  finalResult.classList.remove('hidden');
+  restartBtn.classList.remove('hidden');
+
+  // Save last round score
+  roundScores[currentRound - 1] = roundScore;
+
+  // Build lines cleanly
+  const lines = [];
+  for (let i = 0; i < totalRounds; i++) {
+    const s = typeof roundScores[i] === 'number' ? roundScores[i] : 0;
+    lines.push(`Round ${i+1}: ${s}/5`);
+  }
+  lines.push(''); // blank line
+  lines.push(`Total: ${totalScore}/${totalRounds * 5}`);
+
+  // Use real newlines (\n), not \\n
+  finalResult.textContent = `Round Complete!\n\n${lines.join('\n')}`;
+}
+
+
+    buildRounds();
+    loadRound(0);
+  </script>
+</body>
+</html>

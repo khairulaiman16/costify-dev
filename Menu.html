@@ -1,0 +1,223 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Costify — Notes & Games</title>
+  <style>
+    :root{
+      --bg:#0f1724;
+      --card:#111827;
+      --accent:#06b6d4;
+      --muted:#94a3b8;
+      --radius:14px;
+      --maxw:620px;
+      font-family: Inter, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial;
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0;
+      min-height:100vh;
+      background:linear-gradient(180deg,var(--bg),#071024 120%);
+      color:#fff;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+    }
+
+    .app{
+      width:96vw;
+      max-width:var(--maxw);
+      background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+      border-radius:18px;
+      padding:20px;
+      box-shadow:0 8px 30px rgba(2,6,23,0.6);
+      backdrop-filter: blur(6px);
+    }
+
+    header{display:flex;align-items:center;gap:12px}
+    .logo{width:56px;height:56px;border-radius:12px;background:linear-gradient(135deg,var(--accent),#7c3aed);display:flex;align-items:center;justify-content:center;font-weight:700}
+    h1{font-size:1.25rem;margin:0}
+    p.lead{margin:6px 0 12px;color:var(--muted);font-size:0.95rem}
+
+    .menu{display:flex;flex-direction:column;gap:12px;margin-top:10px}
+    .btn{
+      border:0;padding:14px 16px;border-radius:12px;font-size:1.05rem;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:10px
+    }
+    .btn:active{transform:translateY(1px)}
+    .btn.primary{background:linear-gradient(90deg,var(--accent),#7c3aed);color:#021024}
+    .btn.ghost{background:transparent;border:1px solid rgba(255,255,255,0.06);color:var(--muted)}
+    .row{display:flex;gap:10px}
+    .row .btn{flex:1}
+
+    .small{font-size:0.9rem;color:var(--muted);text-align:center;margin-top:8px}
+
+    .screen{display:none;margin-top:10px}
+    .screen.active{display:block}
+
+    .note-card,.game-card{background:rgba(255,255,255,0.02);padding:16px;border-radius:12px;margin-bottom:12px}
+    .note-card h3,.game-card h3{margin:0 0 8px;font-size:1.1rem;color:var(--accent)}
+    .note-card p,.game-card p{margin:0;color:#cbd5e1;line-height:1.5}
+
+    footer{margin-top:14px;text-align:center;color:var(--muted);font-size:0.85rem}
+
+    @media (max-width:420px){
+      .app{padding:16px;border-radius:12px}
+      .logo{width:48px;height:48px}
+      .btn{padding:12px;font-size:1rem}
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <header>
+      <div class="logo">Q</div>
+      <div>
+        <h1>QuickQuiz</h1>
+        <p class="lead">Choose Notes or Games</p>
+      </div>
+    </header>
+
+    <!-- MAIN MENU -->
+    <main class="menu" id="mainMenu">
+      <button id="startBtn" class="btn primary">▶ Games</button>
+      <button id="notesBtn" class="btn ghost">📘 Notes</button>
+
+      <div class="row">
+        <button id="settingsBtn" class="btn ghost">⚙️ Settings</button>
+        <button id="scoresBtn" class="btn ghost">🏆 High Scores</button>
+      </div>
+
+      <div class="small">Tip: Add to home screen to open like an app.</div>
+    </main>
+
+    <!-- NOTES SCREEN -->
+    <section id="notesScreen" class="screen" aria-hidden="true">
+      <div style="padding:12px">
+        <button id="backFromNotes" class="btn ghost">← Back</button>
+        <h2 style="margin-top:12px">Formula Notes</h2>
+
+        <div class="note-card">
+          <h3>1. FnB Cost by Calculation</h3>
+          <p>Employee Meals = Recent Average Food Cost % × Sales Value</p>
+        </div>
+
+        <div class="note-card">
+          <h3>2. Conversion by Manner Calculation</h3>
+          <p>Imperial System ⇆ Metric System. <br>
+          Example: 1 oz = 28 g, 1 kg = 2.22 lb, 1 ml = 0.2 tsp</p>
+        </div>
+
+        <div class="note-card">
+          <h3>3. Food Cost Percentage</h3>
+          <p>Formula: (Cost of Goods Sold ÷ Sales) × 100%</p>
+        </div>
+
+        <div class="note-card">
+          <h3>4. Contribution Margin</h3>
+          <p>Contribution Margin = Sales – Variable Costs. <br>
+          Used to analyze profitability & menu item performance.</p>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- GAMES MENU SCREEN -->
+    <section id="quizScreen" class="screen" aria-hidden="true">
+      <div style="padding:12px">
+        <button id="backFromQuiz" class="btn ghost">← Back</button>
+        <h2 style="margin-top:10px">Games Menu</h2>
+
+        <div class="game-card">
+          <h3>Game Formula 1: FnB Cost by Calculation</h3>
+          <p>Drag-and-drop into empty slots. Levels: Easy, Medium, Hard.</p>
+          <button class="btn primary" onclick="location.href='Game-Formula1-Easy.html'">Play</button>
+          <!-- <button class="btn primary" onclick="alert('Game 1 will start here')">Play</button> -->
+        </div>
+
+        <div class="game-card">
+          <h3>Game Formula 2: Conversion by Manner Calculation</h3>
+          <p>Click-to-match conversions (Imperial ⇆ Metric).</p>
+          <button class="btn primary" onclick="location.href='Game2.html'">Play</button>
+          <!-- <button class="btn primary" onclick="alert('Game 2 will start here')">Play</button> -->
+        </div>
+
+        <div class="game-card">
+          <h3>Game Formula 3: Food Cost Percentage</h3>
+          <p>Fill-in-the-blank game with feedback at the end.</p>
+          <button class="btn primary" onclick="alert('Game 3 will start here')">Play</button>
+        </div>
+
+        <div class="game-card">
+          <h3>Game Formula 4: Contribution Margin</h3>
+          <p>Matrix-style analysis game to test menu item profitability.</p>
+          <button class="btn primary" onclick="alert('Game 4 will start here')">Play</button>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- SETTINGS SCREEN -->
+    <section id="settingsScreen" class="screen" aria-hidden="true">
+      <div style="padding:12px">
+        <button id="backFromSettings" class="btn ghost">← Back</button>
+        <h3 style="margin-top:12px">Settings</h3>
+        <p class="muted">(Settings unchanged for now)</p>
+      </div>
+    </section>
+
+    <!-- HIGH SCORES SCREEN -->
+    <section id="scoresScreen" class="screen" aria-hidden="true">
+      <div style="padding:12px">
+        <button id="backFromScores" class="btn ghost">← Back</button>
+        <h3 style="margin-top:12px">High Scores</h3>
+        <div id="scoresList" style="margin-top:10px" class="muted">No scores yet</div>
+      </div>
+    </section>
+
+    <footer>Created for assignment • Responsive & mobile-friendly</footer>
+  </div>
+
+  <script>
+    const mainMenu = document.getElementById('mainMenu');
+    const quizScreen = document.getElementById('quizScreen');
+    const notesScreen = document.getElementById('notesScreen');
+    const settingsScreen = document.getElementById('settingsScreen');
+    const scoresScreen = document.getElementById('scoresScreen');
+
+    const startBtn = document.getElementById('startBtn');
+    const notesBtn = document.getElementById('notesBtn');
+    const settingsBtn = document.getElementById('settingsBtn');
+    const scoresBtn = document.getElementById('scoresBtn');
+
+    const backFromQuiz = document.getElementById('backFromQuiz');
+    const backFromNotes = document.getElementById('backFromNotes');
+    const backFromSettings = document.getElementById('backFromSettings');
+    const backFromScores = document.getElementById('backFromScores');
+
+    function showMenu(){
+      [quizScreen,notesScreen,settingsScreen,scoresScreen].forEach(s=>{s.classList.remove('active');s.setAttribute('aria-hidden','true')});
+      mainMenu.style.display = '';
+    }
+
+    function showScreen(screenEl){
+      mainMenu.style.display = 'none';
+      [quizScreen,notesScreen,settingsScreen,scoresScreen].forEach(s=>{s.classList.remove('active');s.setAttribute('aria-hidden','true')});
+      screenEl.classList.add('active');
+      screenEl.setAttribute('aria-hidden','false');
+      window.scrollTo({top:0,behavior:'smooth'});
+    }
+
+    startBtn.addEventListener('click', ()=>showScreen(quizScreen));
+    notesBtn.addEventListener('click', ()=>showScreen(notesScreen));
+    settingsBtn.addEventListener('click', ()=>showScreen(settingsScreen));
+    scoresBtn.addEventListener('click', ()=>showScreen(scoresScreen));
+
+    backFromQuiz.addEventListener('click', showMenu);
+    backFromNotes.addEventListener('click', showMenu);
+    backFromSettings.addEventListener('click', showMenu);
+    backFromScores.addEventListener('click', showMenu);
+  </script>
+</body>
+</html>

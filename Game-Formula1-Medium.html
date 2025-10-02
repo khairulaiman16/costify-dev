@@ -1,0 +1,263 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Game Formula 1 - Medium Level Prototype (Formula Style)</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: #0f1724;
+      color: #fff;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+      min-height: 100vh;
+      padding: 20px;
+    }
+    h1, h2 { text-align: center; }
+    .game-area {
+      margin: 12px;
+      /* margin-top: 20px; */
+      max-width: 600px;
+      width: 100%;
+      background: #111827;
+      padding: 20px;
+      border-radius: 12px;
+      box-shadow: 0 6px 18px rgba(0,0,0,0.5);
+    }
+      @media (max-width: 600px) {
+  .game-area {
+    width: calc(100% - 30px); /* leaves ~15px space on each side */
+  }
+}
+    .formula {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      margin-bottom: 16px;
+      font-size: 1rem;
+      background: rgba(255,255,255,0.05);
+      padding: 12px;
+      border-radius: 8px;
+    }
+    .slot {
+      min-height: 40px;
+      border: 2px dashed #06b6d4;
+      border-radius: 6px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(255,255,255,0.05);
+      margin: 4px 0;
+      padding: 4px 8px;
+    }
+    .options {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-bottom: 16px;
+    }
+    .option {
+      padding: 10px 14px;
+      background: #06b6d4;
+      color: #021024;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: bold;
+      user-select: none;
+    }
+    .option.selected {
+      outline: 3px solid #7c3aed;
+    }
+    .hidden { display: none; }
+    .result {
+      font-size: 1.2rem;
+      font-weight: bold;
+      margin-top: 16px;
+      text-align: center;
+    }
+    button {
+      padding: 10px 18px;
+      border: none;
+      border-radius: 8px;
+      background: linear-gradient(90deg,#06b6d4,#7c3aed);
+      color: #fff;
+      font-weight: bold;
+      cursor: pointer;
+      margin-top: 12px;
+    }
+  </style>
+</head>
+<body>
+  <h1>Game Formula 1 Prototype</h1>
+  <h2>Medium Level</h2>
+
+  <div class="game-area">
+    <div id="roundInfo"></div>
+    <div class="formula" id="formulaBox"></div>
+    <div class="options" id="options"></div>
+    <button id="nextBtn" class="hidden">Next Round</button>
+    <button id="restartBtn" class="hidden">Restart</button>
+    <div id="finalResult" class="result hidden"></div>
+  </div>
+
+  <script>
+    const rounds = [
+      {
+        formula: [
+          "Total Available",
+          "- [Drop Here]",
+          "= Cost of Food Issues"
+        ],
+        options: ["COOKING LIQUOR", "CLOSING INVENTORY", "STEWARD SALES"],
+        correct: "CLOSING INVENTORY"
+      },
+      {
+        formula: [
+          "Cost of Food Issues",
+          "+ Cooking Liquor",
+          "+ [Drop Here]",
+          "= Food to Bar"
+        ],
+        options: ["TRANSFER FROM OTHER UNIT", "PROMOTION EXPENSES", "GRATIS TO BAR"],
+        correct: "TRANSFER FROM OTHER UNIT"
+      },
+      {
+        formula: [
+          "+ Steward Sales",
+          "+ [Drop Here]",
+          "- Cost of Food Consumed",
+          "= Food To Bar"
+        ],
+        options: ["EMPLOYEE MEALS", "OPENING INVENTORY", "GRATIS TO BAR"],
+        correct: "GRATIS TO BAR"
+      }
+    ];
+
+    let currentRound = 0;
+    let score = 0;
+    let selectedOption = null;
+
+    const roundInfo = document.getElementById("roundInfo");
+    const formulaBox = document.getElementById("formulaBox");
+    const optionsDiv = document.getElementById("options");
+    const nextBtn = document.getElementById("nextBtn");
+    const restartBtn = document.getElementById("restartBtn");
+    const finalResult = document.getElementById("finalResult");
+
+    function loadRound() {
+      const r = rounds[currentRound];
+      roundInfo.textContent = `Round ${currentRound+1} of ${rounds.length}`;
+
+      formulaBox.innerHTML = "";
+      r.formula.forEach(part => {
+        const line = document.createElement("div");
+        if(part.includes("[Drop Here]")) {
+          const slot = document.createElement("div");
+          slot.className = "slot";
+          slot.dataset.slot = "answer";
+          slot.textContent = "[Drop Here]";
+          slot.onclick = () => placeInSlot(slot);
+          line.appendChild(slot);
+        } else {
+          line.textContent = part;
+        }
+        formulaBox.appendChild(line);
+      });
+
+      optionsDiv.innerHTML = "";
+      r.options.forEach(val => {
+        const d = document.createElement("div");
+        d.className = "option";
+        d.textContent = val;
+        d.dataset.value = val;
+        d.onclick = () => selectOption(d);
+        optionsDiv.appendChild(d);
+      });
+
+      nextBtn.classList.add("hidden");
+      restartBtn.classList.add("hidden");
+    }
+
+    function selectOption(el) {
+      if(selectedOption) selectedOption.classList.remove("selected");
+      selectedOption = el;
+      el.classList.add("selected");
+    }
+
+    function placeInSlot(slotEl) {
+      if(selectedOption) {
+        slotEl.textContent = selectedOption.dataset.value;
+        slotEl.dataset.filled = selectedOption.dataset.value;
+        selectedOption.classList.remove("selected");
+        selectedOption = null;
+        nextBtn.classList.remove("hidden");
+      }
+    }
+
+    function calculateRoundScore() {
+      const r = rounds[currentRound];
+      const slot = formulaBox.querySelector(".slot");
+      if(slot && slot.dataset.filled === r.correct) {
+        return 1;
+      }
+      return 0;
+    }
+
+    nextBtn.onclick = () => {
+      score += calculateRoundScore();
+      if(currentRound < rounds.length - 1) {
+        currentRound++;
+        loadRound();
+      } else {
+        showFinalResult();
+      }
+    }
+
+    restartBtn.onclick = () => {
+      currentRound = 0;
+      score = 0;
+      finalResult.classList.add("hidden");
+      restartBtn.classList.add("hidden");
+      loadRound();
+    }
+
+    // function showFinalResult() {
+    //   formulaBox.innerHTML = "";
+    //   optionsDiv.innerHTML = "";
+    //   roundInfo.textContent = "";
+    //   nextBtn.classList.add("hidden");
+    //   finalResult.classList.remove("hidden");
+    //   finalResult.textContent = `Game Over! Final Score: ${score}/${rounds.length}`;
+    //   restartBtn.classList.remove("hidden");
+    // }
+function showFinalResult() {
+  formulaBox.innerHTML = "";
+  optionsDiv.innerHTML = "";
+  roundInfo.textContent = "";
+  nextBtn.classList.add("hidden");
+  finalResult.classList.remove("hidden");
+  finalResult.textContent = `Game Over! Final Score: ${score}/${rounds.length}`;
+
+  restartBtn.classList.add("hidden"); // hide by default first
+
+  if (score === rounds.length) {
+    // Perfect score: show Next Level button
+    nextBtn.textContent = "Next Level";
+    nextBtn.classList.remove("hidden");
+     nextBtn.onclick = () => {
+      window.location.href = "Game-Formula1-Hard.html";
+    };
+    // You can hook nextBtn.onclick to load next level here
+  } else {
+    // Not full score: show Restart only
+    restartBtn.classList.remove("hidden");
+  }
+}
+    loadRound();
+  </script>
+</body>
+</html>
