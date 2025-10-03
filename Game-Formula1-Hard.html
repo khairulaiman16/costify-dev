@@ -288,32 +288,28 @@
     //   restartBtn.classList.remove("hidden");
     // }
 function showFinalResult() {
-  tableContainer.innerHTML = "";
+  formulaBox.innerHTML = "";
   optionsDiv.innerHTML = "";
   roundInfo.textContent = "";
   nextBtn.classList.add("hidden");
-
   finalResult.classList.remove("hidden");
-  finalResult.textContent = `Game Over! Final Score: ${score}/9`;
+  finalResult.textContent = `Game Over! Final Score: ${score}/${rounds.length}`;
 
-  breakdown.classList.remove("hidden");
-  breakdown.innerHTML = roundScores
-    .map((s, i) => `Round ${i + 1}: ${s}/3`)
-    .join("<br>");
+  restartBtn.classList.add("hidden"); // hide by default first
 
-  restartBtn.classList.remove("hidden");
-  retryBtn.classList.remove("hidden");
-
-  // If you want a “Back to Menu” when perfect score:
-  if (score === 9) {
-    nextBtn.textContent = "Back to Menu";
+  if (score === rounds.length) {
+    // Perfect score: show Next Level button
+    nextBtn.textContent = "Next Level";
     nextBtn.classList.remove("hidden");
-    nextBtn.onclick = () => {
-      window.location.href = "Menu.html"; // change path if needed
+     nextBtn.onclick = () => {
+      window.location.href = "Menu.html";
     };
+    // You can hook nextBtn.onclick to load next level here
+  } else {
+    // Not full score: show Restart only
+    restartBtn.classList.remove("hidden");
   }
 }
-
     loadRound();
   </script>
 </body>
