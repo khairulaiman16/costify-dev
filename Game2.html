@@ -3,8 +3,8 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <link rel="icon" href="Assets/favicon.ico" type="image/png">
-  <title>Game Formula 2 - Conversion by Manner (5 Rounds)</title>
+  <title>Game Formula 2 - Conversion by Manner (3 Rounds)</title>
+  <link rel="icon" href="Assets/favicon.ico" type="image/png">
   <style>
     body {
       margin: 0;
@@ -21,7 +21,6 @@
     h1, h2 { text-align: center; }
     .game-area {
       margin: 12px;
-      /* margin-top: 20px; */
       max-width: 800px;
       width: 100%;
       background: #111827;
@@ -29,12 +28,9 @@
       border-radius: 12px;
       box-shadow: 0 6px 18px rgba(0,0,0,0.5);
     }
-
     @media (max-width: 600px) {
-  .game-area {
-    width: calc(100% - 30px); /* leaves ~15px space on each side */
-  }
-}
+      .game-area { width: calc(100% - 30px); }
+    }
     .columns {
       display: flex;
       justify-content: space-between;
@@ -55,10 +51,9 @@
       font-weight: bold;
       user-select: none;
       text-align: center;
+      transition: background 0.3s;
     }
-    .item.selected {
-      outline: 3px solid #7c3aed;
-    }
+    .item.selected { outline: 3px solid #7c3aed; }
     .locked {
       background: #4ade80 !important;
       color: #021024;
@@ -89,6 +84,77 @@
       margin-top:12px;
       flex-wrap:wrap;
     }
+
+    /* 📝 Floating Notes Button */
+    #notesBtn {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      background: #7c3aed;
+      color: #fff;
+      border: none;
+      border-radius: 50%;
+      width: 55px;
+      height: 55px;
+      font-size: 1.6rem;
+      cursor: pointer;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+      transition: transform 0.2s ease, background 0.2s ease;
+      z-index: 999;
+    }
+    #notesBtn:hover { transform: scale(1.1); background: #06b6d4; }
+    #notesBtn.disabled {
+      background: #6b7280;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    /* 📋 Notes Panel (Pop-up) */
+    #notesPanel {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: rgba(17, 24, 39, 0.97);
+      border: 2px solid #7c3aed;
+      border-radius: 16px;
+      padding: 20px;
+      width: 90%;
+      max-width: 360px;
+      text-align: center;
+      box-shadow: 0 0 20px rgba(0,0,0,0.5);
+      z-index: 1000;
+    }
+    #notesPanel h3 { margin-top: 0; color: #7c3aed; }
+    #notesPanel p {
+      margin: 6px 0;
+      font-size: 1rem;
+      color: #e5e7eb;
+    }
+    #closeNotes {
+      margin-top: 12px;
+      padding: 8px 16px;
+      background: linear-gradient(90deg,#06b6d4,#7c3aed);
+      border: none;
+      border-radius: 8px;
+      color: #fff;
+      cursor: pointer;
+      font-weight: bold;
+    }
+
+    @media (max-width: 480px) {
+      #notesBtn {
+        width: 45px;
+        height: 45px;
+        font-size: 1.2rem;
+        bottom: 15px;
+        right: 15px;
+      }
+      #notesPanel {
+        width: 92%;
+        padding: 16px;
+      }
+    }
   </style>
 </head>
 <body>
@@ -96,7 +162,7 @@
   <h2 id="subtitle">Round-based Conversion Game</h2>
 
   <div class="game-area">
-    <div id="roundInfo">Round 1 of 5</div>
+    <div id="roundInfo">Round 1 of 3</div>
     <div class="columns">
       <div class="col" id="leftCol"></div>
       <div class="col" id="rightCol"></div>
@@ -108,31 +174,70 @@
     <div id="finalResult" class="result hidden"></div>
   </div>
 
+  <!-- 📝 Floating Notes Button -->
+  <button id="notesBtn">📝</button>
+
+  <!-- 📋 Notes Pop-up -->
+<div id="notesPanel" class="hidden">
+  <div id="notesImperial">
+    <h3>Imperial → Metric</h3>
+    <p>1 ounce (oz) = 28 grams (g) (g)</p>
+    <p>1 pound (lb) = 0.45 kilograms (kg)</p>
+    <p>1 teaspoon (tsp) = 5 millilitres (ml)</p>
+    <p>1 tablespoon (tbsp) = 15 millilitres (ml)</p>
+    <p>1 cup (C) = 0.2 litres (l)</p>
+    <p>1 fluid ounce (fl. oz) = 30 millilitres (ml)</p>
+    <p>1 pint (pt) = 0.47 litres (l)</p>
+    <p>1 quart (qt) = 0.95 litres (l)</p>
+    <p>1 gallon (gal) = 38.46 litres (l)</p>
+    <p>1 cubic foot (ft³) = 0.03 cubic meters (m³)</p>
+    <p>1 cubic yard (yd³) = 0.76 cubic meters (m³)</p>
+    <button id="nextToMetric">Next: Metric → Imperial</button>
+  </div>
+
+  <div id="notesMetric" class="hidden">
+    <h3>Metric → Imperial</h3>
+    <p>1 gram (g) = 0.035 ounces (oz)</p>
+    <p>1 kilogram (kg) = 2.22 pounds (lb)</p>
+    <p>1 millilitre (ml) = 0.2 teaspoons (tsp)</p>
+    <p>1 millilitre (ml) = 0.07 tablespoons (tbsp)</p>
+    <p>1 litre (l) = 4 cups (C)</p>
+    <p>1 litre (l) = 33.33 ounces (oz)</p>
+    <p>1 litre (l) = 2.1 pints (pt)</p>
+    <p>1 litre (l) = 1.05 quarts (qt)</p>
+    <p>1 litre (l) = 0.026 gallons (gal)</p>
+    <p>1 cubic meter (m³) = 33.33 cubic feet (ft³)</p>
+    <p>1 cubic meter (m³) = 1.3 cubic yards (yd³)</p>
+    <button id="backToImperial">Back: Imperial → Metric</button>
+  </div>
+
+  <button id="closeNotes">Close</button>
+</div>
+
   <script>
-    // Imperial → Metric pairs
+    // Conversion Data
     const imperialToMetricPairs = [
       { left: "1 ounce (oz)", right: "28 grams (g)" },
       { left: "1 pound (lb)", right: "0.45 kilograms (kg)" },
       { left: "1 teaspoon (tsp)", right: "5 millilitres (ml)" },
       { left: "1 tablespoon (tbsp)", right: "15 millilitres (ml)" },
-      { left: "1 cup (C)", right: "0.25 litres (l)" },
+      { left: "1 cup (C)", right: "0.2 litres (l)" },
       { left: "1 fluid ounce (fl. oz)", right: "30 millilitres (ml)" },
       { left: "1 pint (pt)", right: "0.47 litres (l)" },
       { left: "1 quart (qt)", right: "0.95 litres (l)" },
       { left: "1 gallon (gal)", right: "38.46 litres (l)" },
       { left: "1 cubic foot (ft³)", right: "0.03 cubic meters (m³)" },
-      { left: "1 cubic yard (yd³)", right: "0.76 cubic meters (m³)" },
-      { left: "1 ounce (oz)", right: "0.03 litres (l)" }
+      { left: "1 cubic yard (yd³)", right: "0.76 cubic meters (m³)" }
     ];
 
-    // Metric → Imperial pairs
+    // ✅ Metric → Imperial pairs (accurate values)
     const metricToImperialPairs = [
       { left: "1 gram (g)", right: "0.035 ounces (oz)" },
       { left: "1 kilogram (kg)", right: "2.22 pounds (lb)" },
-      { left: "1 millilitre (ml)", right: "0.2 teaspoon (tsp)" },
-      { left: "1 millilitre (ml)", right: "0.07 tablespoon (tbsp)" },
-      { left: "1 litre (l)", right: "33.33 ounces (oz) = 4 cups (C)" },
-      { left: "1 litre (l)", right: "0.03 fluid ounces (fl. oz)" },
+      { left: "1 millilitre (ml)", right: "0.2 teaspoons (tsp)" },
+      { left: "1 millilitre (ml)", right: "0.07 tablespoons (tbsp)" },
+      { left: "1 litre (l)", right: "4 cups (C)" },
+      { left: "1 litre (l)", right: "33.33 ounces (oz)" },
       { left: "1 litre (l)", right: "2.1 pints (pt)" },
       { left: "1 litre (l)", right: "1.05 quarts (qt)" },
       { left: "1 litre (l)", right: "0.026 gallons (gal)" },
@@ -141,10 +246,11 @@
     ];
 
     let currentRound = 1;
-    const totalRounds = 5;
+    const totalRounds = 3;
     let rounds = [];
-    let roundScores = [];
-    let totalScore = 0;
+    let roundResults = [];
+    let notesUses = 0;
+    const maxNotesUses = 3;
 
     const leftCol = document.getElementById('leftCol');
     const rightCol = document.getElementById('rightCol');
@@ -153,11 +259,14 @@
     const finalResult = document.getElementById('finalResult');
     const roundInfo = document.getElementById('roundInfo');
     const subtitle = document.getElementById('subtitle');
+    const notesBtn = document.getElementById('notesBtn');
+    const notesPanel = document.getElementById('notesPanel');
+    const closeNotes = document.getElementById('closeNotes');
 
     let selectedLeft = null;
     let selectedRight = null;
     let matchesMade = 0;
-    let roundScore = 0;
+    let triesThisRound = 0;
 
     function shuffleArray(array) {
       for (let i = array.length - 1; i > 0; i--) {
@@ -169,15 +278,13 @@
 
     function buildRounds() {
       rounds = [];
-      roundScores = [];
-      totalScore = 0;
+      roundResults = [];
       const impPool = imperialToMetricPairs.map((p, i) => ({...p, _idx: i}));
       const metPool = metricToImperialPairs.map((p, i) => ({...p, _idx: i}));
       const usedImp = new Set();
       const usedMet = new Set();
-
       for (let r = 1; r <= totalRounds; r++) {
-        const isImperialRound = r <= 3;
+        const isImperialRound = r <= 2;
         const pool = isImperialRound ? impPool : metPool;
         const usedSet = isImperialRound ? usedImp : usedMet;
         let available = pool.filter(item => !usedSet.has(item._idx));
@@ -195,7 +302,7 @@
       selectedLeft = null;
       selectedRight = null;
       matchesMade = 0;
-      roundScore = 0;
+      triesThisRound = 0;
       leftCol.innerHTML = '';
       rightCol.innerHTML = '';
       finalResult.classList.add('hidden');
@@ -242,25 +349,27 @@
 
     function tryMatch() {
       if (selectedLeft && selectedRight) {
+        triesThisRound++;
         selectedLeft.classList.remove('selected');
         selectedRight.classList.remove('selected');
-
         if (selectedLeft.dataset.pairId === selectedRight.dataset.pairId) {
-          roundScore++;
-          totalScore++;
+          selectedLeft.classList.add('locked');
+          selectedRight.classList.add('locked');
+          selectedLeft.onclick = null;
+          selectedRight.onclick = null;
+          matchesMade++;
+        } else {
+          selectedLeft.style.background = "#dc2626";
+          selectedRight.style.background = "#dc2626";
+          setTimeout(() => {
+            selectedLeft.style.background = "#06b6d4";
+            selectedRight.style.background = "#06b6d4";
+          }, 600);
         }
-
-        // lock pair regardless of correctness
-        selectedLeft.classList.add('locked');
-        selectedRight.classList.add('locked');
-        selectedLeft.onclick = null;
-        selectedRight.onclick = null;
-
         selectedLeft = null;
         selectedRight = null;
-        matchesMade++;
-
         if (matchesMade === 5) {
+          recordRoundResult();
           if (currentRound < totalRounds) {
             nextBtn.textContent = 'Next Round';
             nextBtn.classList.remove('hidden');
@@ -272,44 +381,74 @@
       }
     }
 
+    function recordRoundResult() {
+      const extraTries = triesThisRound - 5;
+      let feedback;
+      if (extraTries <= 0) feedback = "Spot on! (0 extra tries)";
+      else if (extraTries === 1) feedback = "1 extra try — Great effort!";
+      else if (extraTries <= 3) feedback = `${extraTries} extra tries — Good job!`;
+      else if (extraTries <= 5) feedback = `${extraTries} extra tries — Keep practicing!`;
+      else feedback = `${extraTries} extra tries — You'll get it next time!`;
+      roundResults[currentRound - 1] = { tries: triesThisRound, feedback };
+    }
+
     nextBtn.onclick = () => {
-      roundScores[currentRound - 1] = roundScore;
       if (currentRound < totalRounds) {
         currentRound++;
         loadRound(currentRound - 1);
-      } else {
-        showFinalResult();
-      }
+      } else showFinalResult();
     };
 
     restartBtn.onclick = () => {
       currentRound = 1;
+      notesUses = 0;
+      notesBtn.classList.remove('disabled');
       buildRounds();
       loadRound(0);
     };
 
     function showFinalResult() {
-  leftCol.innerHTML = '';
-  rightCol.innerHTML = '';
-  nextBtn.classList.add('hidden');
-  finalResult.classList.remove('hidden');
-  restartBtn.classList.remove('hidden');
+      leftCol.innerHTML = '';
+      rightCol.innerHTML = '';
+      nextBtn.classList.add('hidden');
+      finalResult.classList.remove('hidden');
+      restartBtn.classList.remove('hidden');
+      const lines = [];
+      for (let i = 0; i < totalRounds; i++) {
+        const r = roundResults[i];
+        lines.push(`Round ${i + 1}: ${r.feedback}`);
+      }
+      finalResult.textContent = `Round Complete!\n\n${lines.join('\n')}`;
+    }
 
-  // Save last round score
-  roundScores[currentRound - 1] = roundScore;
+    // 📝 Notes Button Logic with Limit
+    notesBtn.addEventListener('click', () => {
+      if (notesUses >= maxNotesUses) return;
+      notesUses++;
+      notesPanel.classList.toggle('hidden');
+      if (notesUses >= maxNotesUses) {
+        notesBtn.classList.add('disabled');
+      }
+    });
 
-  // Build lines cleanly
-  const lines = [];
-  for (let i = 0; i < totalRounds; i++) {
-    const s = typeof roundScores[i] === 'number' ? roundScores[i] : 0;
-    lines.push(`Round ${i+1}: ${s}/5`);
-  }
-  lines.push(''); // blank line
-  lines.push(`Total: ${totalScore}/${totalRounds * 5}`);
+    closeNotes.addEventListener('click', () => {
+      notesPanel.classList.add('hidden');
+    });
+    // Notes Page Switching
+const nextToMetric = document.getElementById('nextToMetric');
+const backToImperial = document.getElementById('backToImperial');
+const notesImperial = document.getElementById('notesImperial');
+const notesMetric = document.getElementById('notesMetric');
 
-  // Use real newlines (\n), not \\n
-  finalResult.textContent = `Round Complete!\n\n${lines.join('\n')}`;
-}
+nextToMetric.addEventListener('click', () => {
+  notesImperial.classList.add('hidden');
+  notesMetric.classList.remove('hidden');
+});
+
+backToImperial.addEventListener('click', () => {
+  notesMetric.classList.add('hidden');
+  notesImperial.classList.remove('hidden');
+});
 
 
     buildRounds();
