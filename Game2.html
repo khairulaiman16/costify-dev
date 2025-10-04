@@ -87,44 +87,70 @@
 
     /* 📝 Floating Notes Button */
     #notesBtn {
-      position: fixed;
-      bottom: 20px;
-      right: 20px;
-      background: #7c3aed;
-      color: #fff;
-      border: none;
-      border-radius: 50%;
-      width: 55px;
-      height: 55px;
-      font-size: 1.6rem;
-      cursor: pointer;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.3);
-      transition: transform 0.2s ease, background 0.2s ease;
-      z-index: 999;
-    }
-    #notesBtn:hover { transform: scale(1.1); background: #06b6d4; }
-    #notesBtn.disabled {
-      background: #6b7280;
-      cursor: not-allowed;
-      transform: none;
-    }
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  background: #7c3aed;
+  color: #fff;
+  border: none;
+  border-radius: 50%;
+  width: 55px;
+  height: 55px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+  transition: transform 0.2s ease, background 0.2s ease;
+  z-index: 999;
+}
+#notesBtn:hover {
+  transform: scale(1.1);
+  background: #06b6d4;
+}
+#notesBtn.disabled {
+  background: #6b7280;
+  cursor: not-allowed;
+  transform: none;
+}
+#notesBtn svg {
+  width: 30px !important;
+  height: 30px !important;
+  flex-shrink: 0;
+}
+
+@media (max-width: 480px) {
+  #notesBtn {
+    width: 65px;
+    height: 65px;
+    bottom: 15px;
+    right: 15px;
+  }
+  #notesBtn svg {
+    width: 25px !important;
+    height: 25px !important;
+  }
+}
+
+
 
     /* 📋 Notes Panel (Pop-up) */
     #notesPanel {
-      position: fixed;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      background: rgba(17, 24, 39, 0.97);
-      border: 2px solid #7c3aed;
-      border-radius: 16px;
-      padding: 20px;
-      width: 90%;
-      max-width: 360px;
-      text-align: center;
-      box-shadow: 0 0 20px rgba(0,0,0,0.5);
-      z-index: 1000;
-    }
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: rgba(17, 24, 39, 0.97);
+  border: 2px solid #7c3aed;
+  border-radius: 16px;
+  padding: 20px 28px;            /* inner padding (top/bottom left/right) */
+  width: calc(100% - 48px);      /* <-- ensures 24px gap on each side */
+  max-width: 360px;
+  box-sizing: border-box;        /* include padding/border in width */
+  text-align: center;
+  box-shadow: 0 0 20px rgba(0,0,0,0.5);
+  z-index: 1000;
+}
     #notesPanel h3 { margin-top: 0; color: #7c3aed; }
     #notesPanel p {
       margin: 6px 0;
@@ -154,6 +180,15 @@
         width: 92%;
         padding: 16px;
       }
+      @media (max-width: 380px) {
+  @media (max-width: 380px) {
+  #notesPanel {
+    width: calc(100% - 32px);    /* 16px gap on each side */
+    padding: 16px 20px;
+  }
+}
+}
+
     }
   </style>
 </head>
@@ -175,8 +210,11 @@
   </div>
 
   <!-- 📝 Floating Notes Button -->
-  <button id="notesBtn">📝</button>
-
+<button id="notesBtn" aria-label="Notes">
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+    <path d="M4 3h16a1 1 0 0 1 1 1v13a1 1 0 0 1-1 1h-4l-4 4-4-4H4a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1zm1 2v11h3.586L12 19.414 15.414 16H19V5H5z"/>
+  </svg>
+</button>
   <!-- 📋 Notes Pop-up -->
 <div id="notesPanel" class="hidden">
   <div id="notesImperial">
